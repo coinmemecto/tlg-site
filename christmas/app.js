@@ -5,7 +5,7 @@ const HAIR_F=[["none","Bald"],["hair_6","Ponytail"],["hair_5","Long & messy"],["
 const HAIR_LIST=()=>S.body[0]==="f"?HAIR_F:HAIR_M;
 const EYES=[["none","None"],["eyes_1","Sleepy"],["eyes_2","Shades"],["eyes_3","Squint"],["eyes_4","Wide"],["eyes_5","Tired"]],MOUTH=[["none","None"],["mouth_1","Smirk"],["mouth_2","Gap grin"],["mouth_3","Laugh"],["mouth_4","Flat"],["mouth_5","Sly"]];
 const TOPS_M=[["none","Tank"],["xm_sweater_black","Black $TLG sweater"],["xm_sweater_snowman","Snowman sweater"],["xm_sweater_reindeer","Reindeer sweater"],["xm_sweater_gingerbread","Gingerbread sweater"],["xm_sweater_red","Red snowflake sweater"]];
-const BOTTOMS_M=[["none","Boxers"]];
+const BOTTOMS_M=[["none","Boxers"],["m_baggy_jeans","Baggy jeans"],["m_work_jeans","Work jeans"]];
 const TOPS_F=[["none","Tank"],["xf_sweater_candycane","Candy cane crop"],["xf_sweater_pink","Pink Fair Isle"],["xf_sweater_cream","Cream turtleneck"],["xf_sweater_offshoulder","Red off-shoulder"],["xf_sweater_tree","Gold tree crop"]];
 const BOTTOMS_F=[["none","Shorts"],["xf_pants_sparkle_a","Holly leggings"],["xf_pants_sparkle_b","Holly vine leggings"],["xf_pants_plaid","Plaid pants"],["xf_pants_pj","Candy cane joggers"],["xf_pants_flare","Snowflake flares"],["xf_pants_velvet","Red velvet pants"]];
 const SHOES_M=[["none","Barefoot"]];
