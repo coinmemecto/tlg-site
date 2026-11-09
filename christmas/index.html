@@ -1,0 +1,61 @@
+<!doctype html>
+<meta charset="utf-8"><meta name="description" content="Build your Little Guy — $TLG Christmas Edition"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Little Guy Christmas</title>
+<style>
+:root{--ink:#0b0b0c;--panel:#151517;--line:#2a2a2e;--cream:#f4ecd8;--dim:#a39c8c;--gold:#ffc51c;--lime:#a8e632}
+*{box-sizing:border-box}html,body{margin:0;background:var(--ink);color:var(--cream);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 40px}
+h1{margin:0 0 4px;font-size:clamp(1.6rem,5vw,2.4rem);letter-spacing:.02em}h1 span{color:var(--gold)}
+.tag{color:var(--dim);font-size:.85rem;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+.views{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.views canvas{width:100%;aspect-ratio:1;border-radius:12px;background:#222;display:block}
+.pfp{border-radius:50%!important}
+.lbl{font:700 .72rem ui-monospace,monospace;letter-spacing:.14em;color:var(--dim);margin:0 0 8px;text-transform:uppercase}
+h2{font:700 .78rem ui-monospace,monospace;letter-spacing:.16em;color:var(--gold);margin:0 0 10px;text-transform:uppercase}
+.group{margin-bottom:18px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{background:transparent;color:var(--cream);border:1px solid var(--line);border-radius:999px;padding:.5rem .85rem;font-weight:600;font-size:.88rem;cursor:pointer}
+.opt[aria-pressed=true]{background:var(--lime);color:var(--ink);border-color:var(--lime)}
+.sw{width:40px;height:40px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.sw[aria-pressed=true]{border-color:var(--lime);box-shadow:0 0 0 3px rgba(168,230,50,.35)}
+.bgs{display:flex;gap:8px;flex-wrap:wrap}.bg{width:56px;height:56px;border-radius:10px;border:2px solid transparent;background-size:cover;cursor:pointer;color:var(--dim);font-size:.7rem;background-color:#222}
+.bg[aria-pressed=true]{border-color:var(--lime)}
+.lineup{margin-top:14px}.lineup canvas{width:100%;display:block;border-radius:12px;background:#1d1d20}
+.note{color:var(--dim);font-size:.82rem;margin:8px 0 0}
+</style>
+<div class="wrap">
+  <h1>LITTLE GUY <span>CHRISTMAS</span></h1>
+  <div class="tag">Christmas Edition · 12 bodies · 6 skin tones</div>
+  <div class="grid">
+    <section class="card">
+      <div class="views">
+        <div><p class="lbl">PFP</p><canvas id="pfp" class="pfp" width="512" height="512"></canvas></div>
+        <div><p class="lbl">Full body</p><canvas id="full" width="512" height="512"></canvas></div>
+      </div>
+      <div class="lineup"><p class="lbl">Everyone in this tone</p><canvas id="lineup" width="2040" height="330"></canvas></div>
+    </section>
+    <section class="card">
+      <div class="group"><h2>Skin tone</h2><div class="opts" id="tones"></div></div>
+      <div class="group"><h2>Guys</h2><div class="opts" id="guys"></div></div>
+      <div class="group"><h2>Girls</h2><div class="opts" id="girls"></div></div>
+      <div class="group"><h2>Eyes</h2><div class="opts" id="eyes"></div></div>
+      <div class="group"><h2>Mouth</h2><div class="opts" id="mouth"></div></div>
+      <div class="group"><h2 id="hairH">Hair</h2><div class="opts" id="hair"></div></div>
+      <div class="group"><h2>Hat</h2><div class="opts" id="hat"></div></div>
+      <div class="group"><h2>Top</h2><div class="opts" id="top"></div></div>
+      <div class="group" id="bottomG"><h2>Bottom</h2><div class="opts" id="bottom"></div></div>
+      <div class="group" id="shoesG"><h2>Shoes</h2><div class="opts" id="shoes"></div></div>
+      <div class="group" hidden><h2>Holding</h2><div class="opts" id="item"></div></div>
+      <div class="group" hidden><h2>Chain</h2><div class="opts" id="chain"></div></div>
+      <div class="group"><h2>Extras</h2><div class="opts" id="extras"></div></div>
+      <div class="group"><h2>Background</h2><div class="bgs" id="bgs"></div></div>
+      
+    </section>
+  </div>
+</div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body></html>
