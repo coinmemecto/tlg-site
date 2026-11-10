@@ -18,5 +18,22 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/christmas",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/christmas/",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/christmas/index.html",
+      "destination": "/",
+      "permanent": false
+    }
   ]
 }
