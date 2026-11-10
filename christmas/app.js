@@ -13,7 +13,7 @@ const SHOES_F=[["none","Barefoot"],["xf_boots_tan","Tan fuzzy boots"],["xf_boots
 const G=()=>S.body[0]==="f";const TOPS_L=()=>G()?TOPS_F:TOPS_M,BOTTOMS_L=()=>G()?BOTTOMS_F:BOTTOMS_M,SHOES_L=()=>G()?SHOES_F:SHOES_M;
 const ITEMS=[["none","Nothing"]];
 const CHAINS=[["none","None"]];
-const HATS_M=[["none","None"],["xm_hat_santa","Santa hat"],["xm_hat_beanie","$TLG beanie"],["xm_hat_snap_red","Christmas snapback"],["xm_hat_snap_black","Snowflake snapback"],["xm_hat_snap_snowman","Snowman snapback"]];
+const HATS_M=[["none","None"],["xm_hat_santa","Santa hat"],["xm_hat_beanie","$TLG beanie"],["xm_hat_snap_red","Christmas snapback"],["xm_hat_snap_black","Snowflake snapback"],["xm_hat_snap_snowman","Snowman snapback"],["xm_hat_earmuffs","Earmuffs"]];
 const HATS_F=[["none","None"],["xf_hat_santa","Santa hat"],["xf_hat_pom","Pom beanie"],["xf_hat_earmuffs","Earmuffs"],["xm_hat_beanie","$TLG beanie"],["xm_hat_snap_red","Christmas snapback"],["xm_hat_snap_black","Snowflake snapback"]];
 const HATS=HATS_M;const IMG={},$=id=>document.getElementById(id);
 const fig=document.createElement("canvas");fig.width=fig.height=2048;const cache={};
