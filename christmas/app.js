@@ -16,12 +16,33 @@ const CHAINS=[["none","None"]];
 const HATS_M=[["none","None"],["xm_hat_santa","Santa hat"],["xm_hat_beanie","$TLG beanie"],["xm_hat_snap_red","Christmas snapback"],["xm_hat_snap_black","Snowflake snapback"],["xm_hat_snap_snowman","Snowman snapback"],["xm_hat_earmuffs","Earmuffs"]];
 const HATS_F=[["none","None"],["xf_hat_santa","Santa hat"],["xf_hat_pom","Pom beanie"],["xf_hat_earmuffs","Earmuffs"],["xm_hat_beanie","$TLG beanie"],["xm_hat_snap_red","Christmas snapback"],["xm_hat_snap_black","Snowflake snapback"]];
 const HATS=HATS_M;const IMG={},$=id=>document.getElementById(id);
+const BASE_STYLE={m:{hair:"cornrows",hat:"xm_hat_santa",top:"xm_sweater_black",bottom:"none",shoes:"none",chain:"none",item:"none"},f:{hair:"hair_6",hat:"xf_hat_santa",top:"xf_sweater_candycane",bottom:"none",shoes:"none",chain:"none",item:"none"}};
+const STYLE_KEYS=["hair","hat","top","bottom","shoes","chain","item"];
+const STYLES={m:{...BASE_STYLE.m},f:{...BASE_STYLE.f}};
+function rememberStyle(){const sex=S.body[0];for(const k of STYLE_KEYS) STYLES[sex][k]=S[k]}
+function applyStyle(sex){Object.assign(S,STYLES[sex]);}
+function changeBody(body){rememberStyle();S.body=body;applyStyle(body[0]);ui();render()}
+const hasAsset=(key,body)=>key==="none"||!!RS(key,body)||!!RS(key+"_front",body)||!!RS(key+"_back",body);
+function suitable(key,body,fallback="none"){
+ if(key==="none"||hasAsset(key,body))return key;
+ return hasAsset(fallback,body)?fallback:"none";
+}
+function snapshotStyle(){return Object.fromEntries(STYLE_KEYS.map(k=>[k,S[k]]))}
+function showForBody(ctx,body,original){
+ const sex=body[0], selected=sex===original.body[0]?original:STYLES[sex];
+ const fallback=BASE_STYLE[sex];
+ for(const key of STYLE_KEYS){S[key]=suitable(selected[key],body,fallback[key]);}
+ S.body=body;
+ draw(ctx,body);
+ Object.assign(S,original);
+}
+
 const fig=document.createElement("canvas");const OFF=256;fig.width=2048;fig.height=2048+OFF;const cache={};
 function RS(k,n){if(!TR[k])return null;if(H1.has(k)){const t=TR[k].m_avg;if(!t)return null;const r=REL[n];return {t,b:'m_avg',s:r[0],x:r[1],y:r[2]}}const t=TR[k][n];return t?{t,b:n,s:1,x:0,y:0}:null}
 function DR(ctx,im,R){ctx.drawImage(im,R.s*R.t.x+R.x,R.s*R.t.y+R.y,R.s*R.t.w,R.s*R.t.h)}
-let _rq=0;function TI(k,n){const id="t_"+k+n;let i=IMG[id];if(i)return i._ok?i:null;if(!TR[k]||!TR[k][n])return null;i=new Image();i.onload=()=>{i._ok=1;if(!_rq){_rq=1;requestAnimationFrame(()=>{_rq=0;try{render()}catch(e){}})}};i.src=TR[k][n].src;IMG[id]=i;return null}
-function load(){const ps=[];for(const n in D)for(const k of["skin","lines","clothes"]){ps.push(new Promise(r=>{const i=new Image();i.onload=()=>{IMG[n+k]=i;r()};i.src=D[n][k].src}))}
-  BG.forEach((s,i)=>ps.push(new Promise(r=>{const im=new Image();im.onload=()=>{IMG["bg"+i]=im;r()};im.src=s})));return Promise.all(ps)}
+let _rq=0;function TI(k,n){const id="t_"+k+n;let i=IMG[id];if(i)return i._ok?i:null;if(!TR[k]||!TR[k][n])return null;i=new Image();i.onload=()=>{i._ok=1;if(!_rq){_rq=1;requestAnimationFrame(()=>{_rq=0;try{render()}catch(e){}})}};i.onerror=()=>{i._failed=true;console.error("TLG image failed",k,n,i.src)};i.src=TR[k][n].src;IMG[id]=i;return null}
+function load(){const ps=[];for(const n in D)for(const k of["skin","lines","clothes"]){ps.push(new Promise(r=>{const i=new Image();i.onload=()=>{IMG[n+k]=i;r()};i.onerror=()=>{console.error("Missing body layer",n,k);r()};i.src=D[n][k].src}))}
+  BG.forEach((s,i)=>ps.push(new Promise(r=>{const im=new Image();im.onload=()=>{IMG["bg"+i]=im;r()};im.onerror=()=>{console.error("Missing background",i);r()};im.src=s})));return Promise.all(ps)}
 function skin(n,t){const id=n+"_"+t;if(cache[id])return cache[id];const l=D[n].skin,c=document.createElement("canvas");c.width=l.w;c.height=l.h;const x=c.getContext("2d");x.drawImage(IMG[n+"skin"],0,0);
   const d=x.getImageData(0,0,l.w,l.h),p=d.data,tc=T[t][1];for(let i=0;i<p.length;i+=4){if(!p[i+3])continue;const s=p[i]/128;p[i]=Math.min(255,tc[0]*s);p[i+1]=Math.min(255,tc[1]*s);p[i+2]=Math.min(255,tc[2]*s)}x.putImageData(d,0,0);return cache[id]=c}
 const tcache={};function tint(k,n){const id=k+n+"_"+S.tone;if(tcache[id])return tcache[id];const t=TR[k][n],im=TI(k,n);if(!im)return null;const c=document.createElement("canvas");c.width=im.width;c.height=im.height;const x=c.getContext("2d");x.drawImage(im,0,0);
@@ -51,21 +72,58 @@ function hatProfile(n){const id=S.hat+n;if(HCUT[id])return HCUT[id];const R=RS(S
   return HCUT[id]={pts:all,core:pts,yl:all[0][1],yr:all[all.length-1][1]}}
 let _hc=null;function putHair(ctx,k,n){if(S.hat==="none"||S.hat.indexOf("earmuffs")>=0){put(ctx,k,n);return}const P=hatProfile(n);if(!P){put(ctx,k,n);return}
   if(!_hc){_hc=document.createElement("canvas");_hc.width=_hc.height=2048}const x=_hc.getContext("2d");x.globalCompositeOperation="source-over";x.clearRect(0,0,2048,2048);put(x,k,n);
-  x.globalCompositeOperation="destination-out";const G=n[0]==="f";{const H_=HT[n];x.beginPath();if(G){x.ellipse(H_.cx,H_.top+0.68*H_.w,0.37*H_.w,0.42*H_.w,0,0,6.3);x.fill()}}x.beginPath();if(G){const Q=P.core,l=Q[0],r=Q[Q.length-1],hw=r[0]-l[0],f=0.07*hw;x.moveTo(-10,-10);x.lineTo(-10,l[1]-f);x.lineTo(l[0],l[1]-f);for(const [px,py] of Q)x.lineTo(px,py);x.lineTo(r[0],r[1]-f);x.lineTo(2058,r[1]-f);x.lineTo(2058,-10);x.closePath();x.fill();for(const [x0,x1,y] of [[-10,l[0],l[1]],[r[0],2058,r[1]]]){const g=x.createLinearGradient(0,y-f,0,y+0.5*f);g.addColorStop(0,"rgba(0,0,0,1)");g.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=g;x.fillRect(x0,y-f,x1-x0,1.5*f)}x.fillStyle="#000";x.beginPath()}else{x.moveTo(-10,-10);x.lineTo(-10,P.yl);for(const [px,py] of P.pts)x.lineTo(px,py);x.lineTo(2058,P.yr);x.lineTo(2058,-10)}x.closePath();x.fill();x.globalCompositeOperation="source-over";ctx.drawImage(_hc,0,0)}
+  x.globalCompositeOperation="destination-out";const G=n[0]==="f";{const H_=HT[n];x.beginPath();/* No inferred elliptical forehead deletion: it cut away entire hairlines. */}x.beginPath();if(G){const Q=P.core,l=Q[0],r=Q[Q.length-1],hw=r[0]-l[0],f=0.07*hw;x.moveTo(-10,-10);x.lineTo(-10,l[1]-f);x.lineTo(l[0],l[1]-f);for(const [px,py] of Q)x.lineTo(px,py);x.lineTo(r[0],r[1]-f);x.lineTo(2058,r[1]-f);x.lineTo(2058,-10);x.closePath();x.fill();for(const [x0,x1,y] of [[-10,l[0],l[1]],[r[0],2058,r[1]]]){const g=x.createLinearGradient(0,y-f,0,y+0.5*f);g.addColorStop(0,"rgba(0,0,0,1)");g.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=g;x.fillRect(x0,y-f,x1-x0,1.5*f)}x.fillStyle="#000";x.beginPath()}else{x.moveTo(-10,-10);x.lineTo(-10,P.yl);for(const [px,py] of P.pts)x.lineTo(px,py);x.lineTo(2058,P.yr);x.lineTo(2058,-10)}x.closePath();x.fill();x.globalCompositeOperation="source-over";ctx.drawImage(_hc,0,0)}
 function draw(ctx,n){ctx.clearRect(0,0,2048,2048);const L=D[n];const hb=S.hair==="cornrows"?"cornrows_back":S.hair+"_back";
   ctx.drawImage(skin(n,S.tone),L.skin.x,L.skin.y);if(S.top!=="none")putSkin(ctx,"boxskin_tanksk_skin",n);if(S.top!=="none"){const _c=document.createElement("canvas");_c.width=_c.height=2048;const _k=_c.getContext("2d");_k.drawImage(IMG[n+"lines"],L.lines.x,L.lines.y);_k.globalCompositeOperation="destination-out";put(_k,"boxskin_tankl",n);ctx.drawImage(_c,0,0)}else ctx.drawImage(IMG[n+"lines"],L.lines.x,L.lines.y);if(S.top!=="none"){const _c=document.createElement("canvas");_c.width=_c.height=2048;const _k=_c.getContext("2d");_k.drawImage(IMG[n+"clothes"],L.clothes.x,L.clothes.y);_k.globalCompositeOperation="destination-out";put(_k,"base_tank",n);put(_k,"boxskin_tankl",n);ctx.drawImage(_c,0,0)}else ctx.drawImage(IMG[n+"clothes"],L.clothes.x,L.clothes.y);if(S.top!=="none"&&RS(S.top+"_berase",n)){ctx.globalCompositeOperation="destination-out";put(ctx,S.top+"_berase",n);ctx.globalCompositeOperation="source-over"}const TUCK=S.shoes.startsWith("xf_boots")&&S.bottom!=="none"&&!/flare|velvet/.test(S.bottom);if(S.shoes!=="none"){ctx.globalCompositeOperation="destination-out";put(ctx,S.shoes+"_erase",n);ctx.globalCompositeOperation="source-over";if(!TUCK){putSkin(ctx,S.shoes+"_skin",n);put(ctx,S.shoes,n)}}const full=S.bottom==="m_overalls";if(S.bottom.startsWith("xf_pants")){ctx.globalCompositeOperation="destination-out";put(ctx,"boxskin_erase",n);ctx.globalCompositeOperation="source-over";putSkin(ctx,"boxskin_skin",n)}if(S.bottom!=="none"){putSkin(ctx,S.bottom+"_skin",n);put(ctx,S.bottom,n);if(TUCK){putSkin(ctx,S.shoes+"_skin",n);put(ctx,S.shoes,n)}if(!full&&S.top==="none")put(ctx,"base_tank",n);if(S.top!=="none"&&RS(S.top+"_berase",n)){const _a=document.createElement("canvas");_a.width=_a.height=2048;const _ax=_a.getContext("2d");putSkin(_ax,"arms_skin",n);put(_ax,"arms",n);_ax.globalCompositeOperation="destination-out";put(_ax,S.top+"_berase",n);ctx.drawImage(_a,0,0)}else{putSkin(ctx,"arms_skin",n);put(ctx,"arms",n)}}if(!full&&S.top!=="none"){putSkin(ctx,S.top+"_skin",n);put(ctx,S.top,n)}if(S.chain!=="none")put(ctx,S.chain,n);if(S.item!=="none"){putSkin(ctx,S.item+"_skin",n);put(ctx,S.item,n)}
   if(S.stubble)put(ctx,"stubble_1",n);if(S.eyes!=="none"){putSkin(ctx,S.eyes+"_skin",n);put(ctx,S.eyes,n)}if(S.mouth!=="none"){putSkin(ctx,S.mouth+"_skin",n);put(ctx,S.mouth,n)}if(S.mask)put(ctx,"mask_1",n);
   if(S.hair!=="none"&&!(S.hair==="cornrows"&&S.hat!=="none"&&S.hat.indexOf("earmuffs")<0)){if((S.hat==="none"||S.hat.indexOf("earmuffs")>=0)&&RS(S.hair+"_skin",n))putSkin(ctx,S.hair+"_skin",n);putHair(ctx,S.hair==="cornrows"?"cornrows_front":S.hair+"_front",n);}if(S.earrings)put(ctx,"earrings_1",n);if(S.hat!=="none"){if(S.hat.indexOf("earmuffs")<0)putSkin(ctx,S.hat+"_skin",n);if(S.hat==="hat_3"&&S.hair!=="none")hairHole(ctx,n);put(ctx,S.hat,n)}if(S.hair!=="none"&&!(S.hair==="cornrows"&&S.hat!=="none"&&S.hat.indexOf("earmuffs")<0)){ctx.globalCompositeOperation="destination-over";putHair(ctx,hb,n);ctx.globalCompositeOperation="source-over"}}
-function bg(ctx,s){if(S.bg<0){ctx.fillStyle="#2a2a30";ctx.fillRect(0,0,s,s);return}const im=IMG["bg"+S.bg],k=Math.max(s/im.width,s/im.height);ctx.drawImage(im,(s-im.width*k)/2,(s-im.height*k)/2,im.width*k,im.height*k)}
-function render(){const fx=fig.getContext("2d");fx.setTransform(1,0,0,1,0,0);fx.clearRect(0,0,2048,2048+OFF);fx.setTransform(1,0,0,1,0,OFF);draw(fx,S.body);fx.setTransform(1,0,0,1,0,0);const h=D[S.body].head;
-  const p=$("pfp").getContext("2d");bg(p,512);const q=HT[S.body],santa=S.hat.indexOf("hat_santa")>=0;let side=(santa?2.1:1.9)*q.w,top=q.top-(santa?0.1:0.08)*side;{const hk=S.hair==="cornrows"?"cornrows_front":S.hair+"_front",HR=S.hair!=="none"&&(S.hat==="none"||S.hat.indexOf("earmuffs")>=0)?RS(hk,S.body):null;if(HR){const ht=HR.t.y*HR.s+HR.y-0.03*side;if(ht<top){const ns=Math.min(2.6*q.w,side+(top-ht));top-=ns-side;side=ns}}}const left=q.cx-side/2+(santa?0.07*side:0);p.imageSmoothingQuality="high";p.drawImage(fig,left,top+OFF,side,side,0,0,512,512);
-  const f=$("full").getContext("2d");bg(f,512);if(S.bg===4){const q=HT[S.body],side=2.9*q.w,top=q.top-0.16*side;f.imageSmoothingQuality="high";f.drawImage(fig,q.cx-side/2,top+OFF,side,side,0,0,512,512)}else f.drawImage(fig,0,OFF,2048,2048,0,0,512,512);
-  const lc=$("lineup"),lx=lc.getContext("2d");lx.fillStyle="#1d1d20";lx.fillRect(0,0,lc.width,lc.height);const tmp=document.createElement("canvas");tmp.width=tmp.height=2048;const tx=tmp.getContext("2d");
-  B.forEach(([n],i)=>{draw(tx,n);lx.drawImage(tmp,374,150,1300,1820,i*170+85-118,0,236,330)})}
-function opts(el,list,key){const b=$(el);b.innerHTML="";list.forEach(([v,lab])=>{const e=document.createElement("button");e.className="opt";e.type="button";e.textContent=lab;e.setAttribute("aria-pressed",S[key]===v);e.onclick=()=>{S[key]=v;ui();render()};b.appendChild(e)})}
+function bg(ctx,s){if(S.bg<0){ctx.clearRect(0,0,s,s);return}const im=IMG["bg"+S.bg],k=Math.max(s/im.width,s/im.height);ctx.drawImage(im,(s-im.width*k)/2,(s-im.height*k)/2,im.width*k,im.height*k)}
+// Explicit per-body preview composition. Missing cross-gender layers are never drawn.
+const lineupCanvas=document.createElement("canvas");lineupCanvas.width=lineupCanvas.height=2048;
+function pfpBounds(body){
+ const q=HT[body],headW=q.w,headTop=q.top;
+ let left=q.cx-1.03*headW,right=q.cx+1.03*headW,top=headTop-0.24*headW;
+ for(const key of [S.hair==="cornrows"?"cornrows_front":S.hair+"_front",S.hat]){
+  if(key==="none")continue;
+  const R=RS(key,body);if(!R)continue;
+  const x=R.s*R.t.x+R.x,y=R.s*R.t.y+R.y,w=R.s*R.t.w;
+  // Ignore long back-hair's vertical extent; preserve the head's visual scale.
+  left=Math.min(left,x-0.04*headW);right=Math.max(right,x+w+0.04*headW);
+  top=Math.min(top,y-0.055*headW);
+ }
+ const side=Math.max(right-left,2.10*headW);
+ const cx=(left+right)/2;
+ return {side:Math.min(side,3.05*headW),left:cx-side/2,top:top-0.02*side};
+}
+function render(){
+ const fx=fig.getContext("2d");fx.setTransform(1,0,0,1,0,0);fx.clearRect(0,0,2048,2048+OFF);fx.setTransform(1,0,0,1,0,OFF);draw(fx,S.body);fx.setTransform(1,0,0,1,0,0);
+ const p=$("pfp").getContext("2d");p.clearRect(0,0,512,512);bg(p,512);
+ const c=pfpBounds(S.body);p.imageSmoothingQuality="high";p.drawImage(fig,c.left,c.top+OFF,c.side,c.side,0,0,512,512);
+ const f=$("full").getContext("2d");f.clearRect(0,0,512,512);bg(f,512);
+ if(S.bg===4){const q=HT[S.body],side=2.9*q.w,top=q.top-0.16*side;f.imageSmoothingQuality="high";f.drawImage(fig,q.cx-side/2,top+OFF,side,side,0,0,512,512)}
+ else f.drawImage(fig,0,OFF,2048,2048,0,0,512,512);
+ const lc=$("lineup"),lx=lc.getContext("2d");lx.fillStyle="#1d1d20";lx.fillRect(0,0,lc.width,lc.height);
+ const tx=lineupCanvas.getContext("2d");const original={...S};
+ B.forEach(([n],i)=>{
+  showForBody(tx,n,original);
+  // Each figure always uses valid assets and retains the correct gender's clothing.
+  lx.drawImage(lineupCanvas,374,120,1300,1860,i*170+85-118,0,236,330);
+ });
+ Object.assign(S,original);
+}
+function opts(el,list,key){const b=$(el);b.innerHTML="";list.forEach(([v,lab])=>{const e=document.createElement("button");e.className="opt";e.type="button";e.textContent=lab;e.setAttribute("aria-pressed",S[key]===v);e.onclick=()=>{if(key==="body"){changeBody(v);return}S[key]=v;if(STYLE_KEYS.includes(key))rememberStyle();ui();render()};b.appendChild(e)})}
 function ui(){const t=$("tones");t.innerHTML="";T.forEach(([nm,c],i)=>{const e=document.createElement("button");e.className="sw";e.type="button";e.title=nm;e.setAttribute("aria-label",nm);e.style.background=`rgb(${c})`;e.setAttribute("aria-pressed",S.tone===i);e.onclick=()=>{S.tone=i;ui();render()};t.appendChild(e)});
-  opts("eyes",EYES,"eyes");opts("mouth",MOUTH,"mouth");if(!HAIR_LIST().some(h=>h[0]===S.hair))S.hair=S.body[0]==="f"?"hair_6":"cornrows";opts("hair",HAIR_LIST(),"hair");{const HL=S.body[0]==="f"?HATS_F:HATS_M;if(!HL.some(h=>h[0]===S.hat))S.hat=HL[1][0];opts("hat",HL,"hat")};for(const [k,L] of [["top",TOPS_L()],["bottom",BOTTOMS_L()],["shoes",SHOES_L()]])if(!L.some(o=>o[0]===S[k]))S[k]=k==="top"?L[1][0]:"none";opts("top",TOPS_L(),"top");opts("bottom",BOTTOMS_L(),"bottom");opts("shoes",SHOES_L(),"shoes");$("shoesG").hidden=SHOES_L().length<2;$("bottomG").hidden=BOTTOMS_L().length<2;opts("item",ITEMS,"item");opts("chain",CHAINS,"chain");
+  opts("eyes",EYES,"eyes");opts("mouth",MOUTH,"mouth");if(!HAIR_LIST().some(h=>h[0]===S.hair))S.hair=BASE_STYLE[S.body[0]].hair;opts("hair",HAIR_LIST(),"hair");{const HL=S.body[0]==="f"?HATS_F:HATS_M;if(!HL.some(h=>h[0]===S.hat))S.hat=BASE_STYLE[S.body[0]].hat;opts("hat",HL,"hat")};for(const [k,L] of [["top",TOPS_L()],["bottom",BOTTOMS_L()],["shoes",SHOES_L()]])if(!L.some(o=>o[0]===S[k]))S[k]=k==="top"?BASE_STYLE[S.body[0]].top:"none";opts("top",TOPS_L(),"top");opts("bottom",BOTTOMS_L(),"bottom");opts("shoes",SHOES_L(),"shoes");$("shoesG").hidden=SHOES_L().length<2;$("bottomG").hidden=BOTTOMS_L().length<2;opts("item",ITEMS,"item");opts("chain",CHAINS,"chain");
   const ex=$("extras");ex.innerHTML="";[["stubble","Stubble"],["mask","Surgical mask"],["earrings","Gold hoops"]].forEach(([k,l])=>{const e=document.createElement("button");e.className="opt";e.type="button";e.textContent=l;e.setAttribute("aria-pressed",!!S[k]);e.onclick=()=>{S[k]=!S[k];ui();render()};ex.appendChild(e)});
   opts("guys",B.filter(b=>b[0][0]==="m"),"body");opts("girls",B.filter(b=>b[0][0]==="f"),"body");
   const g=$("bgs");g.innerHTML="";[-1].concat(BG.map((_,i)=>i)).forEach(i=>{const e=document.createElement("button");e.className="bg";e.type="button";e.setAttribute("aria-label",i<0?"No background":"Background "+(i+1));if(i<0)e.textContent="NONE";else e.style.backgroundImage=`url(${BG[i]})`;e.setAttribute("aria-pressed",S.bg===i);e.onclick=()=>{S.bg=i;ui();render()};g.appendChild(e)})}
-ui();load().then(render);
+function saveCanvas(canvasId,name){
+ const original=$(canvasId),exportCanvas=document.createElement("canvas");exportCanvas.width=exportCanvas.height=1024;
+ const ctx=exportCanvas.getContext("2d");ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+ ctx.drawImage(original,0,0,1024,1024);
+ const a=document.createElement("a");a.href=exportCanvas.toDataURL("image/png");a.download=name;a.click();
+}
+$("savePfp").onclick=()=>saveCanvas("pfp","TLG-christmas-PFP.png");
+$("saveFull").onclick=()=>saveCanvas("full","TLG-christmas-full-body.png");
+ui();load().then(()=>{rememberStyle();render();});
+window.TLGBuilderDebug={get state(){return {...S}},get bodyTypes(){return B.map(x=>x[0])},get missingAssets(){return B.flatMap(([n])=>Object.entries({...BASE_STYLE[n[0]],...STYLES[n[0]]}).filter(([key,value])=>value!=="none"&&!hasAsset(value,n)).map(([key,value])=>({body:n,key,value})))},render,draw,showForBody};

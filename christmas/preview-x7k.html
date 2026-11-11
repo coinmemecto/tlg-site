@@ -1,5 +1,5 @@
 <!doctype html>
-<meta charset="utf-8"><meta name="description" content="Build your Little Guy — $TLG Christmas Edition"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="description" content="Build your Little Guy — $TLG Christmas Edition"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Little Guy Christmas</title>
 <style>
 :root{--ink:#0b0b0c;--panel:#151517;--line:#2a2a2e;--cream:#f4ecd8;--dim:#a39c8c;--gold:#ffc51c;--lime:#a8e632}
@@ -23,7 +23,7 @@ h2{font:700 .78rem ui-monospace,monospace;letter-spacing:.16em;color:var(--gold)
 .sw[aria-pressed=true]{border-color:var(--lime);box-shadow:0 0 0 3px rgba(168,230,50,.35)}
 .bgs{display:flex;gap:8px;flex-wrap:wrap}.bg{width:56px;height:56px;border-radius:10px;border:2px solid transparent;background-size:cover;cursor:pointer;color:var(--dim);font-size:.7rem;background-color:#222}
 .bg[aria-pressed=true]{border-color:var(--lime)}
-.lineup{margin-top:14px}.lineup canvas{width:100%;display:block;border-radius:12px;background:#1d1d20}
+.exports{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}.export{flex:1;min-width:115px;background:var(--lime);color:var(--ink);border:none;border-radius:10px;font-weight:800;padding:12px;cursor:pointer}.export:focus-visible{outline:3px solid var(--gold);outline-offset:2px}.lineup{margin-top:14px}.lineup canvas{width:100%;display:block;border-radius:12px;background:#1d1d20}
 .note{color:var(--dim);font-size:.82rem;margin:8px 0 0}
 </style>
 <div class="wrap">
@@ -36,6 +36,7 @@ h2{font:700 .78rem ui-monospace,monospace;letter-spacing:.16em;color:var(--gold)
         <div><p class="lbl">PFP</p><canvas id="pfp" class="pfp" width="512" height="512"></canvas></div>
         <div><p class="lbl">Full body</p><canvas id="full" width="512" height="512"></canvas></div>
       </div>
+      <div class="exports"><button type="button" class="export" id="savePfp">Save PFP (PNG)</button><button type="button" class="export" id="saveFull">Save Full Body (PNG)</button></div>
       <div class="lineup"><p class="lbl">Everyone in this tone</p><canvas id="lineup" width="2040" height="330"></canvas></div>
     </section>
     <section class="card">
